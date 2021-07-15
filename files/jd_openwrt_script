@@ -17,11 +17,9 @@ start() {
 	echo "-------------------------------------------"
 	echo -e "$yellow 本插件使用到的脚本$white"
 	echo "  1.https://github.com/ITdesk01/JD_Script"
-	echo "  2.https://github.com/ITdesk01/Checkjs"
 	echo ""
 	echo -e "$yellow 等安装完成以后可以用以下代码调用脚本$white"
 	echo -e "$green  sh \$jd $white      #调用JD_Script"
-	echo -e "$green  sh \$checkjs $white #调用Checkjs"
 	echo ""
 	echo " 脚本用法请到github查看说明"
 	echo "-------------------------------------------"
@@ -63,13 +61,6 @@ start() {
 		sh JD_Script/jd.sh update
 	fi
 
-	if [ -e Checkjs ];then
-		echo -e "$green Checkjs已存在$white"
-	else
-		git clone https://github.com/ITdesk01/Checkjs.git && Detect
-		chmod 755 Checkjs/checkjs.sh
-		sh Checkjs/checkjs.sh system_variable
-	fi
 	
 	#全局变量生效
 	source /etc/profile
@@ -124,13 +115,10 @@ stop() {
 	done
 		echo -e "$green删除计划任务$white"
 		sed -i '/JD_Script/d' /etc/crontabs/root >/dev/null 2>&1
-		sed -i '/Checkjs/d' /etc/crontabs/root >/dev/null 2>&1
-		sed -i '/####/d' /etc/crontabs/root >/dev/null 2>&1
 		/etc/init.d/cron restart
 		sleep 5
 
 		echo -e "$green开始删除全局变量$white"
-		sed -i '/Checkjs/d' /etc/profile >/dev/null 2>&1
 		sed -i '/JD_Script/d' /etc/profile >/dev/null 2>&1
 
 		sleep 5
