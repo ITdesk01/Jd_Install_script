@@ -11,71 +11,73 @@ white="\033[0m"
 dir_file="/usr/share/jd_openwrt_script"
 
 start() {
-	clear
-	echo "-------------------------------------------"
-	echo -e "$green	    jd_openwrt_script$white"
-	echo "-------------------------------------------"
-	echo -e "$yellow 本插件使用到的脚本$white"
-	echo "  1.https://github.com/ITdesk01/JD_Script"
-	echo ""
-	echo -e "$yellow 等安装完成以后可以用以下代码调用脚本$white"
-	echo -e "$green  sh \$jd $white      #调用JD_Script"
-	echo ""
-	echo " 脚本用法请到github查看说明"
-	echo "-------------------------------------------"
-	echo -e "$green 执行脚本安装与检测，请稍等$white" && sleep 5
-	#检测网络环境
-	ping -c 2 github.com > /dev/null 2>&1
-	if [ $? -eq 0 ];then
-		echo -e "$green 网络正常$white"
+	if [ ! -f $dir_file ];then
+		clear
+		echo "-------------------------------------------"
+		echo -e "$green	    jd_openwrt_script$white"
+		echo "-------------------------------------------"
+		echo -e "$yellow 本插件使用到的脚本$white"
+		echo "  1.https://github.com/ITdesk01/JD_Script"
+		echo ""
+		echo -e "$yellow 等安装完成以后可以用以下代码调用脚本$white"
+		echo -e "$green  sh \$jd $white      #调用JD_Script"
+		echo ""
+		echo " 脚本用法请到github查看说明"
+		echo "-------------------------------------------"
+		echo -e "$green 执行脚本安装与检测，请稍等$white" && sleep 5
+		#检测网络环境
+		ping -c 2 github.com > /dev/null 2>&1
+		if [ $? -eq 0 ];then
+			echo -e "$green 网络正常$white"
+		else
+			echo -e "$red 网络连接异常，无法ping通github.com，休息5分钟插件再继续尝试下载脚本$white"
+			echo -e "$green 如果5分钟过去还是这样，你可以强制代理github.com ，或者采用底下代码手动安装，看看什么问题 $white"
+			echo -e "$green /etc/init.d/jd_openwrt_script stop $white"
+			echo -e "$green /etc/init.d/jd_openwrt_script start $white"
+			sleep 5m
+			start
+		fi
+
+		#创建主文件
+		if [ -e $dir_file ];then
+			echo -e "$green 主文件夹创建完成$white"
+		else
+			mkdir  $dir_file
+		fi
+
+		if [ -e $dir_file/script_config ];then
+			echo -e "$green script_config创建完成$white"
+		else
+			mkdir  $dir_file/script_config
+		fi
+
+		cd $dir_file
+
+		#开始下载脚本
+		if [ -e JD_Script ];then
+			echo -e "$green JD_Script已存在$white"
+		else
+			git clone -b main https://github.com/ITdesk01/JD_Script.git && Detect
+			chmod 755 JD_Script/jd.sh
+			sh JD_Script/jd.sh update
+		fi
+
+		#全局变量生效
+		source /etc/profile
+
+		#检测npm依赖(安装时间太久，放到最后)
+		npm_install
+
+		#生成备份的时候把script_config一起打包出来
+		script_config="/usr/share/jd_openwrt_script/script_config"
+		if_sysupgrade=$(grep -o "$script_config" /etc/sysupgrade.conf | wc -l )
+		if [ $if_sysupgrade == "0" ];then
+			echo "$script_config" >> /etc/sysupgrade.conf
+		fi
 	else
-		echo -e "$red 网络连接异常，无法ping通github.com，休息5分钟插件再继续尝试下载脚本$white"
-		echo -e "$green 如果5分钟过去还是这样，你可以强制代理github.com ，或者采用底下代码手动安装，看看什么问题 $white"
-		echo -e "$green /etc/init.d/jd_openwrt_script stop $white"
-		echo -e "$green /etc/init.d/jd_openwrt_script start $white"
-		sleep 5m
-		start
+		echo "检测到环境已经搭建完成，关闭安装服务"
+		/etc/init.d/jd_openwrt_script disable
 	fi
-
-	#创建主文件
-	if [ -e $dir_file ];then
-		echo -e "$green 主文件夹创建完成$white"
-	else
-		mkdir  $dir_file
-	fi
-	
-	if [ -e $dir_file/script_config ];then
-		echo -e "$green script_config创建完成$white"
-	else
-		mkdir  $dir_file/script_config
-	fi
-
-	cd $dir_file
-
-	#开始下载脚本
-	if [ -e JD_Script ];then
-		echo -e "$green JD_Script已存在$white"
-	else
-		git clone -b main https://github.com/ITdesk01/JD_Script.git && Detect
-		chmod 755 JD_Script/jd.sh
-		sh JD_Script/jd.sh update
-	fi
-
-	
-	#全局变量生效
-	source /etc/profile
-
-	#检测npm依赖(安装时间太久，放到最后)
-	npm_install
-
-	#生成备份的时候把script_config一起打包出来
-	script_config="/usr/share/jd_openwrt_script/script_config"
-	if_sysupgrade=$(grep -o "$script_config" /etc/sysupgrade.conf | wc -l )
-	if [ $if_sysupgrade == "0" ];then
-		echo "$script_config" >> /etc/sysupgrade.conf
-	fi
-
-	exit 0
 }
 
 npm_install() {
