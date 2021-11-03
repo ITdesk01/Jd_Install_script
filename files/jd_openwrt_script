@@ -26,7 +26,7 @@ start() {
 		echo "-------------------------------------------"
 		echo -e "$green 执行脚本安装与检测，请稍等$white" && sleep 5
 		#检测网络环境
-		ping -c 2 github.com > /dev/null 2>&1
+		wget -t 1 -T 20 https://raw.githubusercontent.com/ITdesk01/JD_Script/master/README.md -O /tmp/test_README.md
 		if [ $? -eq 0 ];then
 			echo -e "$green 网络正常$white"
 		else
