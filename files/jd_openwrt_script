@@ -11,7 +11,7 @@ white="\033[0m"
 dir_file="/usr/share/jd_openwrt_script"
 
 start() {
-	if [ ! -e $dir_file ];then
+	if [ ! -f $dir_file/JD_Script/jd.sh ];then
 		clear
 		echo "-------------------------------------------"
 		echo -e "$green	    jd_openwrt_script$white"
